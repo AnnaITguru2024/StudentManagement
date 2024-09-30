@@ -5,7 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 public class CourseStudentCount {
 
   private String courseName;
