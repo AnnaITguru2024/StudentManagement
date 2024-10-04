@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import raisetech.student.management.data.CourseStudentCount;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
-import raisetech.student.management.repository.StudentCourseRepository;
 import raisetech.student.management.repository.StudentRepository;
 
 @SpringBootApplication
