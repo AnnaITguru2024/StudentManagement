@@ -2,10 +2,12 @@ package raisetech.student.management.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.CourseStudentCount;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
@@ -16,10 +18,12 @@ import raisetech.student.management.service.StudentService;
 public class StudentController {
 
   private StudentService service;
+  private StudentConverter converter;
 
   @Autowired
-  public StudentController(StudentService service) {
+  public StudentController(StudentService service, StudentConverter converter) {
     this.service = service;
+    this.converter = converter;
   }
 
   @GetMapping("/studentList")
@@ -27,37 +31,11 @@ public class StudentController {
     List<Student> students = service.searchStudentList();
     List<StudentCourse> studentCourses = service.searchStudentCourseList();
 
-    List<StudentDetail> studentDetails = new ArrayList<>();
-    for (Student student : students) {
-      StudentDetail studentDetail = new StudentDetail();
-      studentDetail.setStudent(student);
-
-      List<StudentCourse> convertStudentCourses = new ArrayList<>();
-      for (StudentCourse studentCourse : studentCourses) {
-        if (student.getId().equals(studentCourse.getStudentId())) {
-          convertStudentCourses.add(studentCourse);
-        }
-      }
-      studentDetail.setStudentCourse(convertStudentCourses);
-      studentDetails.add(studentDetail);
-    }
-    return studentDetails;
+    return converter.convertStudentDetails(students, studentCourses);
   }
 
   @GetMapping("/studentsCourseList")
   public List<StudentCourse> getStudentCourseList() {
-    return service.searchStudentCourseList();
-  }
-
-  // 年齢が25歳以下の学生を取得
-  @GetMapping("/students/under25")
-  public List<Student> getStudentsUnder25() {
-    return service.searchStudentList();
-  }
-
-  // "Javaコース"の学生コース情報を取得
-  @GetMapping("/students/courses/java")
-  public List<StudentCourse> getJavaCourseStudents() {
     return service.searchStudentCourseList();
   }
 }
