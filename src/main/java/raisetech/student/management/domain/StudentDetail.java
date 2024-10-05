@@ -8,7 +8,6 @@ import raisetech.student.management.data.StudentCourse;
 
 @Getter
 @Setter
-
 public class StudentDetail {
 
   private Student student;
