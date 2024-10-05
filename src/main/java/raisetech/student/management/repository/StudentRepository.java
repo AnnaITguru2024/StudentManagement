@@ -17,13 +17,6 @@ import raisetech.student.management.data.StudentCourse;
 public interface StudentRepository {
 
   /**
-   *全件検索します。
-   * @return 全件検索した受講生情報の一覧
-   */
-
-
-
-  /**
    * 新しい受講生情報をデータベースに保存します。
    * @param student 保存する受講生情報
    */
