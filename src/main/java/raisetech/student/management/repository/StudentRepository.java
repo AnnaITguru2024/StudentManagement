@@ -21,9 +21,9 @@ public interface StudentRepository {
    * @param student 保存する受講生情報
    */
   @Insert("INSERT INTO students (id, name, furigana, nickname, email, city, age, gender, remark, is_deleted) "
-      + "VALUES (#{id}, #{name}, #{furigana}, #{nickname}, #{email}, #{city}, #{age}, #{gender}, #{remark}, #{isDeleted})")
+      + "VALUES (#{id}, #{name}, #{furigana}, #{nickname}, #{email}, #{city}, #{age}, #{gender}, #{remark}, #{is_deleted})")
   void save(Student student);
 
+  @Select("SELECT * FROM students WHERE is_deleted = 0")
   List<Student> search();
-
 }
