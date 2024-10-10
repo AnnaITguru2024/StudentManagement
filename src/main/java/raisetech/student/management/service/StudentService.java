@@ -4,52 +4,40 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.data.Student;
-import raisetech.student.management.data.StudentCourse;
-import raisetech.student.management.repository.StudentCourseRepository;
+import raisetech.student.management.data.StudentsCourses;
+import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.repository.StudentRepository;
 
 @Service
 public class StudentService {
 
-  private final StudentRepository studentRepository;
-  private final StudentCourseRepository studentCourseRepository;
+  private StudentRepository repository;
 
   @Autowired
-  public StudentService(StudentRepository studentRepository,
-      StudentCourseRepository studentCourseRepository) {
-    this.studentRepository = studentRepository;
-    this.studentCourseRepository = studentCourseRepository;
+  public StudentService(StudentRepository repository) {
+    this.repository = repository;
   }
 
   public List<Student> searchStudentList() {
-    return studentRepository.search();
+    return repository.search();
   }
 
-  public List<StudentCourse> searchStudentCourseList() {
-    return studentCourseRepository.searchStudentsCourses();
+  public List<StudentsCourses> searchStudentCourseList() {
+    return repository.searchStudentsCourses();
   }
 
+  @Transactional
   // 新規受講生を登録
-  public void registerStudent(Student student) {
-    studentRepository.save(student);  // データベースに保存
-  }
-
-  // 新規コースを登録
-  public void registerStudentCourse(String studentId, String courseName, LocalDateTime startDate,
-      LocalDateTime endDate) {
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setStudentId(studentId); // studentIdを設定
-    studentCourse.setCourseName(courseName);
-    studentCourse.setStartDate(startDate);
-    studentCourse.setEndDate(endDate);
-    studentCourseRepository.save(studentCourse);  // データベースに保存
-  }
-
-  public void registerStudentCourse(StudentCourse course) {
-    if (course.getStudentId() == null) {
-      throw new IllegalArgumentException("Student ID cannot be null.");
+  public void registerStudent(StudentDetail studentDetail) {
+    repository.registerStudent(studentDetail.getStudent());// データベースに保存
+    //TODO:コース情報登録も行う。
+    for(StudentsCourses studentsCourse : studentDetail.getStudentsCourses()) {
+      studentsCourse.setStudentId(studentDetail.getStudent().getId());
+      studentsCourse.setStartDate(LocalDateTime.now());
+      studentsCourse.setEndDate(LocalDateTime.now().plusYears(1));
+      repository.registerStudentsCourses(studentsCourse);
     }
-    studentCourseRepository.save(course);
   }
 }
