@@ -23,21 +23,37 @@ public class StudentService {
   public List<Student> searchStudentList() {
     return repository.search();
   }
+  public  StudentDetail searchStudent(String id) {
+    Student student = repository.searchStudent(id);
+    List<StudentsCourses> studentsCourses = repository.searchStudentsCourses(student.getId());
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(student);
+    studentDetail.setStudentsCourses(studentsCourses);
+    return studentDetail;
+  }
 
   public List<StudentsCourses> searchStudentCourseList() {
-    return repository.searchStudentsCourses();
+    return repository.searchStudentsCoursesList();
   }
 
   @Transactional
   // 新規受講生を登録
   public void registerStudent(StudentDetail studentDetail) {
     repository.registerStudent(studentDetail.getStudent());// データベースに保存
-    //TODO:コース情報登録も行う。
     for(StudentsCourses studentsCourse : studentDetail.getStudentsCourses()) {
       studentsCourse.setStudentId(studentDetail.getStudent().getId());
       studentsCourse.setStartDate(LocalDateTime.now());
       studentsCourse.setEndDate(LocalDateTime.now().plusYears(1));
       repository.registerStudentsCourses(studentsCourse);
+    }
+  }
+
+  @Transactional
+  // 受講生情報の更新
+  public void updateStudent(StudentDetail studentDetail) {
+    repository.updateStudent(studentDetail.getStudent());// データベースに保存
+    for(StudentsCourses studentsCourse : studentDetail.getStudentsCourses()) {
+      repository.updateStudentsCourses(studentsCourse);
     }
   }
 }

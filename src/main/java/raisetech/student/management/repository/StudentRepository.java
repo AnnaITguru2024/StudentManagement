@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.stereotype.Repository;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentsCourses;
@@ -13,15 +14,20 @@ import raisetech.student.management.data.StudentsCourses;
  *受講生情報を扱うリポジトリ。
  * 全件検索や単一条件での検索、コース情報の検索が行えるクラスです。
  */
-@Repository
 @Mapper
 public interface StudentRepository {
 
   @Select("SELECT * FROM students")
   List<Student> search();
 
+  @Select("SELECT * FROM students WHERE id = #{id}")
+  Student searchStudent(String id);
+
   @Select("SELECT * FROM students_courses")
-  List<StudentsCourses> searchStudentsCourses();
+  List<StudentsCourses> searchStudentsCoursesList();
+
+  @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
+  List<StudentsCourses> searchStudentsCourses(String studentId);
 
   /**
    * 新しい受講生情報をデータベースに保存します。
@@ -36,4 +42,11 @@ public interface StudentRepository {
       + "VALUES (#{studentId}, #{courseName}, #{startDate}, #{endDate})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudentsCourses(StudentsCourses studentsCourses);
+
+  @Update("UPDATE students SET name = #{name}, furigana = #{furigana}, nickname = #{nickname}, "
+      + "email = #{email}, city = #{city}, age = #{age}, gender = #{gender}, remark = #{remark}, is_deleted = #{is_deleted} WHERE id = #{id}")
+  void updateStudent(Student student);
+
+  @Update("UPDATE students_courses SET course_name = #{courseName} WHERE id = #{id}")
+  void updateStudentsCourses(StudentsCourses studentsCourses);
 }
