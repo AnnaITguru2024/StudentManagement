@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-import org.springframework.stereotype.Repository;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentsCourses;
 
@@ -33,7 +32,7 @@ public interface StudentRepository {
    * 新しい受講生情報をデータベースに保存します。
    * @param student 保存する受講生情報
    */
-  @Insert("INSERT INTO students(name, furigana, nickname, email, city, age, gender, remark, is_deleted)"
+  @Insert("INSERT INTO students(name, furigana, nickname, email, city, age, gender, remark, isDeleted)"
       + "VALUES(#{name}, #{furigana}, #{nickname}, #{email}, #{city}, #{age}, #{gender}, #{remark}, false)")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudent(Student student);
@@ -44,7 +43,7 @@ public interface StudentRepository {
   void registerStudentsCourses(StudentsCourses studentsCourses);
 
   @Update("UPDATE students SET name = #{name}, furigana = #{furigana}, nickname = #{nickname}, "
-      + "email = #{email}, city = #{city}, age = #{age}, gender = #{gender}, remark = #{remark}, is_deleted = #{is_deleted} WHERE id = #{id}")
+      + "email = #{email}, city = #{city}, age = #{age}, gender = #{gender}, remark = #{remark}, isDeleted = #{isDeleted} WHERE id = #{id}")
   void updateStudent(Student student);
 
   @Update("UPDATE students_courses SET course_name = #{courseName} WHERE id = #{id}")
