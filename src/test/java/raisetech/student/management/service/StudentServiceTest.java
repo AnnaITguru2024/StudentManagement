@@ -9,12 +9,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.data.Student;
@@ -49,7 +47,7 @@ class StudentServiceTest {
     // 実行
     sut.searchStudentList();
 
-    //検証
+    // 検証
     verify(repository, times(1)).search();
     verify(repository, times(1)).searchStudentCourseList();
     verify(converter, times(1)).convertStudentDetails(studentList, studentCourseList);
@@ -120,7 +118,6 @@ class StudentServiceTest {
   @Test
   void 受講生コースの初期化_受講生IDと日付が正しく設定されること() {
     // 事前準備
-
     String id = "1";
     Student student = new Student();
     student.setId(id);
@@ -167,9 +164,4 @@ class StudentServiceTest {
     verify(repository, times(1)).updateStudent(student);
     verify(repository, times(2)).updateStudentCourse(any(StudentCourse.class)); // 2つのコースが更新されることを検証
   }
-
-
-
-
-
 }
