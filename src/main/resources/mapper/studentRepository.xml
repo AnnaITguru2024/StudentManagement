@@ -18,8 +18,46 @@
   </select>
 
   <!-- 受講生IDに紐づく受講生コース情報を検索 -->
-  <select id="searchStudentCourse" parameterType="string" resultType="raisetech.student.management.data.StudentCourse">
-    SELECT * FROM students_courses WHERE student_id = #{studentId}
+  <select id="searchStudentCourse" parameterType="int" resultType="raisetech.student.management.data.StudentCourse">
+    SELECT * FROM students_courses
+    WHERE student_id = #{studentId}
+  </select>
+
+  <!-- 指定したコースIDに紐づくコース申込状況を検索 -->
+  <select id="searchCourseStatus" resultType="raisetech.student.management.data.CourseStatus">
+    SELECT id, course_id, status
+    FROM course_status
+    WHERE course_id = #{courseId}
+  </select>
+
+  <!-- コース申込状況の全件検索 -->
+  <select id="searchCourseStatusList" resultType="raisetech.student.management.data.CourseStatus">
+    SELECT * FROM course_status
+  </select>
+
+  <!-- 受講生とそのコースの詳細およびステータス情報を検索 -->
+  <select id="searchStudentsWithStatus" parameterType="map" resultType="raisetech.student.management.data.StudentCourse">
+    SELECT sc.*, cs.status
+    FROM students_courses sc
+    LEFT JOIN course_status cs ON sc.course_id = cs.course_id
+    <where>
+      <if test="studentId != null">
+        AND sc.student_id = #{studentId}
+      </if>
+      <if test="courseId != null">
+        AND sc.course_id = #{courseId}
+      </if>
+      <if test="status != null">
+        AND cs.status = #{status}
+      </if>
+    </where>
+  </select>
+
+  <!-- 受講生IDに基づいて受講生コース情報を取得するメソッド -->
+  <select id="searchStudentCoursesByStudentId" parameterType="int" resultType="raisetech.student.management.data.StudentCourse">
+    SELECT *
+    FROM students_courses
+    WHERE student_id = #{studentId}
   </select>
 
   <!-- 受講生を新規登録 -->
@@ -32,6 +70,12 @@
   <insert id="registerStudentCourse" parameterType="raisetech.student.management.data.StudentCourse" useGeneratedKeys="true" keyProperty="id">
     INSERT INTO students_courses (student_id, course_name, start_date, end_date)
     VALUES (#{studentId}, #{courseName}, #{startDate}, #{endDate})
+  </insert>
+
+  <!-- コース申込状況の新規登録 -->
+  <insert id="registerCourseStatus" parameterType="raisetech.student.management.data.CourseStatus" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO course_status (course_id, status)
+    VALUES (#{courseId}, #{status})
   </insert>
 
   <!-- 受講生を更新 -->
@@ -47,6 +91,13 @@
     UPDATE students_courses
     SET course_name = #{courseName}
     WHERE id = #{id}
+  </update>
+
+  <!-- 受講生のステータスを更新 -->
+  <update id="updateCourseStatus" parameterType="raisetech.student.management.data.CourseStatus">
+    UPDATE course_status
+    SET status = #{status}
+    WHERE course_id = #{courseId}
   </update>
 
 </mapper>

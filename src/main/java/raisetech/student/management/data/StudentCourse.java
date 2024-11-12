@@ -14,11 +14,23 @@ public class StudentCourse {
 
   private int id;
 
-  @Pattern(regexp = "^\\d+$")
-  private String studentId;
+  private int studentId;
 
   @NotBlank
   private String courseName;
   private LocalDateTime startDate;
   private LocalDateTime endDate;
+
+
+  public StudentCourse(int id, int studentId, String courseName, LocalDateTime startDate, LocalDateTime endDate) {
+    this.id = id;
+    this.studentId = studentId;
+    this.courseName = courseName;
+    this.startDate = startDate;
+    this.endDate = endDate;
+  }
+
+  public void setCourseStatus(CourseStatus courseStatus) {
+  }
+
 }

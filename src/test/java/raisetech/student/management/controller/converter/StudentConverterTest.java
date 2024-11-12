@@ -16,6 +16,7 @@ class StudentConverterTest {
 
   @BeforeEach
   void before() {
+
     sut = new StudentConverter();
   }
 
@@ -23,12 +24,7 @@ class StudentConverterTest {
   void 受講生のリストと受講生コース情報のリストを渡して受講生詳細のリストが作成できること() {
     Student student = createStudent();
 
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setId(1);
-    studentCourse.setStudentId("1");
-    studentCourse.setCourseName("Javaコース");
-    studentCourse.setStartDate(LocalDateTime.now());
-    studentCourse.setEndDate(LocalDateTime.now().plusYears(1));
+    StudentCourse studentCourse = new StudentCourse(1, 1, "Javaコース", LocalDateTime.now(), LocalDateTime.now().plusYears(1));
 
     List<Student> studentList = List.of(student);
     List<StudentCourse> studentCourseList = List.of(studentCourse);
@@ -43,12 +39,7 @@ class StudentConverterTest {
   void 受講生のリストと受講生コース情報のリストを渡した時に紐づかない受講生コース情報は除外されること() {
     Student student = createStudent();
 
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setId(1);
-    studentCourse.setStudentId("2");
-    studentCourse.setCourseName("Javaコース");
-    studentCourse.setStartDate(LocalDateTime.now());
-    studentCourse.setEndDate(LocalDateTime.now().plusYears(1));
+    StudentCourse studentCourse = new StudentCourse(1, 2, "Javaコース", LocalDateTime.now(), LocalDateTime.now().plusYears(1));
 
     List<Student> studentList = List.of(student);
     List<StudentCourse> studentCourseList = List.of(studentCourse);
@@ -61,7 +52,7 @@ class StudentConverterTest {
 
   private static Student createStudent() {
     Student student = new Student();
-    student.setId("1");
+    student.setId(1);
     student.setName("長井　アンナ");
     student.setFurigana("ナガイ　アンナ");
     student.setNickname("あんちゃん");

@@ -20,3 +20,12 @@ CREATE TABLE IF NOT EXISTS students_courses
   start_date TIMESTAMP,
   end_date TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS course_status
+(
+    id INT NOT NULL AUTO_INCREMENT,
+    course_id INT NOT NULL,
+    status ENUM('仮申込', '本申込', '受講中', '受講終了') NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (course_id) REFERENCES students_courses(id) ON DELETE CASCADE
+);

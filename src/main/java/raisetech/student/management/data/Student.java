@@ -12,8 +12,7 @@ import lombok.Setter;
 @Setter
 public class Student {
 
-  @Pattern(regexp = "^\\d+$", message = "数字のみ入力するようにしてください。")
-  private String id;
+  private int id;
 
   @NotBlank
   private String name;
@@ -31,12 +30,12 @@ public class Student {
   @NotBlank
   private String city;
 
-
   private int age;
 
   @NotBlank
   private String gender;
 
   private String remark;
+
   private boolean isDeleted;
 }
