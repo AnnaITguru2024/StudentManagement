@@ -35,7 +35,9 @@ public class Student {
   @NotBlank
   private String gender;
 
+  @Pattern(regexp = "^(?!\\s*$).+", message = "空白のみの文字列は許可されません")
   private String remark;
 
   private boolean isDeleted;
+
 }
