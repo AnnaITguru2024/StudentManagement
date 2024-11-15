@@ -9,7 +9,6 @@ import org.springframework.context.annotation.ComponentScan;
 
 @OpenAPIDefinition(info = @Info(title = "受講生管理システム"))
 @SpringBootApplication
-@MapperScan("raisetech.student.management.repository")
 public class Application {
 
   public static void main(String[] args) {
