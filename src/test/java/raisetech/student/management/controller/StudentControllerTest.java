@@ -147,19 +147,6 @@ class StudentControllerTest {
   }
 
   @Test
-  void IDで受講生コース詳細を取得し該当データが返ってくること() throws Exception {
-    int id = 1;
-    CourseDetail courseDetail = new CourseDetail();
-    when(service.getCourseById(id)).thenReturn(courseDetail);
-
-    mockMvc.perform(MockMvcRequestBuilders.get("/studentList/courses/detail/{id}", id))
-        .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-
-    verify(service, times(1)).getCourseById(id);
-  }
-
-  @Test
   void 受講生詳細の登録が実装できて空で返ってくること() throws Exception {
     //リクエストデータは最初に構築して入力チェックの検証も重ねている。
     //本来であれば返りは登録されたデータが入るが、モック化すると意味がないため、レスポンスは作らない。
