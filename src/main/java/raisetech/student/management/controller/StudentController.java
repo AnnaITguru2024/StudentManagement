@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import org.apache.ibatis.javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,6 +117,31 @@ public class StudentController {
     } else {
       return ResponseEntity.ok(courses);
     }
+  }
+
+  /**
+   * 条件に基づいて受講生の詳細情報を検索します。
+   * @param name 名前
+   * @param furigana フリガナ
+   * @param city 居住地域
+   * @param age 年齢
+   * @param gender 性別
+   * @param courseName コース名
+   * @param status コースステータス
+   * @return 統合された受講生の詳細情報
+   */
+  @Operation(summary = "条件検索による受講生の詳細取得", description = "条件に合致する受講生とそのコース情報を統合して取得します。")
+  @GetMapping("/students/search")
+  public List<IntegratedDetail> searchStudents(
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String furigana,
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) Integer age,
+      @RequestParam(required = false) String gender,
+      @RequestParam(required = false) String courseName,
+      @RequestParam(required = false) CourseStatus.Status status
+  ) {
+    return service.searchIntegratedDetails(name, furigana, city, age, gender, courseName, status);
   }
 
   /**

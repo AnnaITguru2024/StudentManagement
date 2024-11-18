@@ -35,6 +35,45 @@
     SELECT * FROM course_status
   </select>
 
+  <!-- 受講生条件検索 -->
+  <select id="findStudentsByConditions" resultType="raisetech.student.management.data.Student">
+    SELECT * FROM students
+    WHERE 1=1
+    <if test="name != null and name != ''">
+      AND name LIKE CONCAT('%', #{name}, '%')
+    </if>
+    <if test="furigana != null and furigana != ''">
+      AND furigana LIKE CONCAT('%', #{furigana}, '%')
+    </if>
+    <if test="city != null and city != ''">
+      AND city LIKE CONCAT('%', #{city}, '%')
+    </if>
+    <if test="age != null">
+      AND age = #{age}
+    </if>
+    <if test="gender != null and gender != ''">
+      AND gender = #{gender}
+    </if>
+  </select>
+
+  <!-- 受講生コース条件検索 -->
+  <select id="findCoursesByConditions" resultType="raisetech.student.management.data.StudentCourse">
+    SELECT * FROM students_courses
+    WHERE 1=1
+    <if test="courseName != null and courseName != ''">
+      AND course_name = #{courseName}
+    </if>
+  </select>
+
+  <!-- 申込状況条件検索 -->
+  <select id="findCourseStatusByConditions" resultType="raisetech.student.management.data.CourseStatus">
+    SELECT * FROM course_status
+    WHERE 1=1
+    <if test="status != null">
+      AND status = #{status}
+    </if>
+  </select>
+
   <!-- 受講生とそのコースの詳細およびステータス情報を検索 -->
   <select id="searchStudentsWithStatus" parameterType="map" resultType="raisetech.student.management.data.StudentCourse">
     SELECT sc.*, cs.status

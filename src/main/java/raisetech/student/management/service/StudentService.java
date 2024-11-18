@@ -3,6 +3,7 @@ package raisetech.student.management.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springdoc.api.OpenApiResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,7 @@ import raisetech.student.management.repository.StudentRepository;
 
 
 /**
- * 受講生情報を取り扱うサービスです。
- * 受講生の検索や登録、更新処理を行います。
+ * 受講生情報を取り扱うサービスです。 受講生の検索や登録、更新処理を行います。
  */
 @Service
 public class StudentService {
@@ -30,7 +30,8 @@ public class StudentService {
   private CourseConverter courseConverter;
 
   @Autowired
-  public StudentService(StudentRepository repository, StudentConverter studentConverter, CourseConverter courseConverter) {
+  public StudentService(StudentRepository repository, StudentConverter studentConverter,
+      CourseConverter courseConverter) {
     this.repository = repository;
     this.studentConverter = studentConverter;
     this.courseConverter = courseConverter;
@@ -62,10 +63,9 @@ public class StudentService {
   }
 
   /**
-   * 受講生詳細検索です。
-   * IDに紐づく受講生情報を取得したあと、その受講生に紐づく受講生コース情報を取得して設定します。
+   * 受講生詳細検索です。 IDに紐づく受講生情報を取得したあと、その受講生に紐づく受講生コース情報を取得して設定します。
    *
-   * @param id　受講生ID
+   * @param id 　受講生ID
    * @return 受講生詳細
    */
   public StudentDetail searchStudent(int id) {
@@ -73,49 +73,53 @@ public class StudentService {
     if (student == null) {
       throw new OpenApiResourceNotFoundException("Student with id " + id + " not found");
     }
-    List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(student.getId());
+    List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(
+        student.getId());
     return studentConverter.convertToStudentDetail(student, studentCourses);
   }
 
   /**
-   * 受講生コースを検索する
+   * 条件に一致する受講生とそのコース詳細および申込状況を統合した詳細情報を検索します。
+   * このメソッドは、指定された受講生の条件（名前、ふりがな、都市、年齢、性別）およびコースに関する条件（コース名、申込状況）に基づいて、受講生とそのコース詳細を検索します。
+   * その後、受講生情報とコース情報を統合し、統合された詳細情報をリストとして返します。
    *
-   * @param studentId 受講生ID
-   * @return 受講生コース情報のリスト
+   * @param name       受講生の名前。条件に一致する受講生を検索します（部分一致）。
+   * @param furigana   受講生のふりがな。条件に一致する受講生を検索します（部分一致）。
+   * @param city       受講生の都市。条件に一致する受講生を検索します（部分一致）。
+   * @param age        受講生の年齢。条件に一致する受講生を検索します。
+   * @param gender     受講生の性別。条件に一致する受講生を検索します（"male" または "female"）。
+   * @param courseName コース名。条件に一致するコースを検索します（部分一致）。
+   * @param status     コース申込状況。条件に一致する申込状況を検索します（"仮申込"、"本申込"、"受講中"、"受講終了"）。
+   * @return 条件に一致する受講生およびそのコース詳細を統合した詳細情報のリスト。 統合された詳細は、受講生情報とそのコース情報が含まれます。
    */
-  public List<StudentCourse> searchStudentCourse(int studentId) {
-    // 受講生IDに関連する全てのコース情報を取得
-    List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(studentId);
+  public List<IntegratedDetail> searchIntegratedDetails(String name, String furigana, String city,
+      Integer age, String gender, String courseName, CourseStatus.Status status) {
+    // 条件に一致する受講生を検索
+    List<Student> students = repository.findStudentsByConditions(name, furigana, city, age, gender);
 
-    // コース情報が無い場合に例外を投げる
-    if (studentCourses == null || studentCourses.isEmpty()) {
-      throw new OpenApiResourceNotFoundException("No StudentCourses found for student ID " + studentId);
-    }
+    // 条件に一致する受講生コースと申込状況を検索
+    List<StudentCourse> studentCourses = repository.findCoursesByConditions(courseName);
+    List<CourseStatus> courseStatuses = repository.findCourseStatusByConditions(status);
 
-    // 各コースのステータスを取得して関連付ける
-    for (StudentCourse studentCourse : studentCourses) {
-      int courseId = studentCourse.getId();
-      if (courseId == 0) {
-        throw new OpenApiResourceNotFoundException("Course ID is missing for StudentCourse with id " + studentCourse.getId());
-      }
+    // 受講生詳細を作成
+    List<StudentDetail> studentDetails = studentConverter.convertStudentDetails(students,
+        studentCourses);
 
-      CourseStatus courseStatus = repository.searchCourseStatus(courseId);
-      if (courseStatus == null) {
-        throw new OpenApiResourceNotFoundException("CourseStatus not found for course ID " + courseId);
-      }
-
-      studentCourse.setCourseStatus(courseStatus); // コースステータスを設定
-    }
-
-    return studentCourses;
+    // 統合された詳細を作成
+    return studentDetails.stream()
+        .map(detail -> {
+          List<StudentCourse> courses = detail.getStudentCourseList();
+          List<CourseDetail> courseDetails = courseConverter.convertToCourseDetails(courses,
+              courseStatuses);
+          return new IntegratedDetail(detail, courseDetails);
+        })
+        .collect(Collectors.toList());
   }
 
-
   /**
-   * 受講生詳細の登録を行います。
-   * 受講生と受講生コース情報を個別に登録し、受講生コース情報に受講生情報を紐づける値とコース開始日、コース終了日を設定します。
-   * 
-   * @param studentDetail　受講生詳細
+   * 受講生詳細の登録を行います。 受講生と受講生コース情報を個別に登録し、受講生コース情報に受講生情報を紐づける値とコース開始日、コース終了日を設定します。
+   *
+   * @param studentDetail 　受講生詳細
    * @return 登録情報を付与した受講生詳細
    */
   @Transactional
@@ -130,7 +134,8 @@ public class StudentService {
       initStudentsCourse(studentCourses, student.getId());
       repository.registerStudentCourse(studentCourses);
 
-      CourseStatus courseStatus = new CourseStatus(0, studentCourses.getId(), CourseStatus.Status.仮申込);
+      CourseStatus courseStatus = new CourseStatus(0, studentCourses.getId(),
+          CourseStatus.Status.仮申込);
 
       registerCourseStatus(courseStatus);
 
@@ -185,7 +190,8 @@ public class StudentService {
     // コースステータスの取得
     CourseStatus courseStatus = repository.searchCourseStatus(courseId);
     if (courseStatus == null) {
-      throw new OpenApiResourceNotFoundException("CourseStatus not found for course ID " + courseId);
+      throw new OpenApiResourceNotFoundException(
+          "CourseStatus not found for course ID " + courseId);
     }
 
     // StudentCourseとCourseStatusを使用してCourseDetailに変換して返す
@@ -197,7 +203,7 @@ public class StudentService {
    * 受講生コース情報の初期設定を行います。
    *
    * @param studentCourse 受講生コース情報
-   * @param studentId 受講生ID
+   * @param studentId     受講生ID
    */
   private void initStudentsCourse(StudentCourse studentCourse, int studentId) {
     LocalDateTime now = LocalDateTime.now();
