@@ -3,20 +3,28 @@ package raisetech.student.management.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springdoc.api.OpenApiResourceNotFoundException;
+import raisetech.student.management.controller.converter.CourseConverter;
 import raisetech.student.management.controller.converter.StudentConverter;
+import raisetech.student.management.data.CourseStatus;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
+import raisetech.student.management.domain.IntegratedDetail;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.repository.StudentRepository;
 
@@ -27,141 +35,110 @@ class StudentServiceTest {
   private StudentRepository repository;
 
   @Mock
-  private StudentConverter converter;
+  private StudentConverter studentConverter;
+
+  @Mock
+  private CourseConverter courseConverter;
 
   private StudentService sut;
 
+  private Student student1;
+  private Student student2;
+  private Student student3;
+  private StudentCourse studentCourse;
+  private CourseStatus courseStatus;
+
+
   @BeforeEach
   void before() {
-    sut = new StudentService(repository, converter);
+    sut = new StudentService(repository, studentConverter, courseConverter);
+  }
+
+  private static List<StudentDetail> createTestStudentDetails() {
+    Student activeStudent = new Student();
+    activeStudent.setDeleted(false);
+
+    // StudentCourse のインスタンスを引数付きコンストラクタで作成
+    StudentCourse activeStudentCourse1 = new StudentCourse(1, activeStudent.getId(), "Javaコース", LocalDateTime.of(2024, 11, 7, 14, 0), LocalDateTime.of(2025, 11, 7, 14, 0));
+    StudentCourse activeStudentCourse2 = new StudentCourse(2, activeStudent.getId(), "Pythonコース", LocalDateTime.of(2024, 11, 7, 14, 0), LocalDateTime.of(2025, 11, 7, 14, 0));
+    List<StudentCourse> activeStudentCourses = new ArrayList<>(List.of(activeStudentCourse1, activeStudentCourse2));
+    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses);
+
+    Student deletedStudent = new Student();
+    deletedStudent.setDeleted(true);
+
+    // DeletedStudentのコースも引数付きコンストラクタを使って作成
+    StudentCourse deletedStudentCourse1 = new StudentCourse(1, deletedStudent.getId(), "Javaコース", LocalDateTime.of(2024, 11, 7, 14, 0), LocalDateTime.of(2025, 11, 7, 14, 0));
+    StudentCourse deletedStudentCourse2 = new StudentCourse(2, deletedStudent.getId(), "Pythonコース", LocalDateTime.of(2024, 11, 7, 14, 0), LocalDateTime.of(2025, 11, 7, 14, 0));
+    List<StudentCourse> deletedStudentCourses = new ArrayList<>(List.of(deletedStudentCourse1, deletedStudentCourse2));
+    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses);
+
+    return new ArrayList<>(List.of(activeStudentDetail, deletedStudentDetail));
   }
 
   @Test
-  void 受講生詳細の一覧検索_リポジトリとコンバーターの処理が適切に呼び出せていること() {
-    // 事前準備
+  void 受講生詳細一覧検索_削除フラグがnullのときにリポジトリとコンバータが正しく呼び出される() {
+    Boolean deleted = null;
+
     List<Student> studentList = new ArrayList<>();
     List<StudentCourse> studentCourseList = new ArrayList<>();
+    List<StudentDetail> studentDetails = createTestStudentDetails();
+
     when(repository.search()).thenReturn(studentList);
     when(repository.searchStudentCourseList()).thenReturn(studentCourseList);
+    when(studentConverter.convertStudentDetails(studentList, studentCourseList)).thenReturn(studentDetails);
 
-    // 実行
-    sut.searchStudentList();
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
 
-    // 検証
     verify(repository, times(1)).search();
     verify(repository, times(1)).searchStudentCourseList();
-    verify(converter, times(1)).convertStudentDetails(studentList, studentCourseList);
+    verify(studentConverter, times(1)).convertStudentDetails(studentList, studentCourseList);
+
+    assertEquals(studentDetails, actualStudentDetails);
+    assertEquals(2, actualStudentDetails.size());
   }
 
   @Test
-  void 受講生詳細の検索_リポジトリの処理を適切に呼び出して受講生IDに紐づく受講生情報と受講生コース情報が返ってくること() {
-    // 事前準備
-    String id = "1";
-    Student student = new Student();
-    student.setId(id);
+  void 受講生詳細一覧検索_削除フラグがfalseのときにアクティブな受講生のみが取得される() {
+    Boolean deleted = false;
 
-    // モックのStudentCourseオブジェクトのリストを準備
-    List<StudentCourse> studentCourses = new ArrayList<>();
-    StudentCourse studentCourse1 = new StudentCourse();
-    studentCourse1.setStudentId(student.getId());
-    studentCourses.add(studentCourse1);
+    List<Student> studentList = new ArrayList<>();
+    List<StudentCourse> studentCourseList = new ArrayList<>();
+    List<StudentDetail> studentDetails = createTestStudentDetails();
 
-    StudentCourse studentCourse2 = new StudentCourse();
-    studentCourse2.setStudentId(student.getId());
-    studentCourses.add(studentCourse2);
+    when(repository.search()).thenReturn(studentList);
+    when(repository.searchStudentCourseList()).thenReturn(studentCourseList);
+    when(studentConverter.convertStudentDetails(studentList, studentCourseList)).thenReturn(studentDetails);
 
-    // リポジトリのモック設定
-    when(repository.searchStudent(id)).thenReturn(student);
-    when(repository.searchStudentCourse(student.getId())).thenReturn(studentCourses);
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
 
-    // 実行
-    StudentDetail result = sut.searchStudent(id);
+    verify(repository, times(1)).search();
+    verify(repository, times(1)).searchStudentCourseList();
+    verify(studentConverter, times(1)).convertStudentDetails(studentList, studentCourseList);
 
-    // 検証
-    assertNotNull(result);
-    assertEquals(id, result.getStudent().getId());
-    assertEquals(2, result.getStudentCourseList().size());
-    assertEquals(studentCourse1.getStudentId(), result.getStudentCourseList().get(0).getStudentId());
-    assertEquals(studentCourse2.getStudentId(), result.getStudentCourseList().get(1).getStudentId());
-
-    // モックのメソッドが適切な回数呼び出されたことを検証
-    verify(repository, times(1)).searchStudent(id);
-    verify(repository, times(1)).searchStudentCourse(student.getId());
+    assertFalse(studentDetails.get(0).getStudent().isDeleted());
+    assertEquals(2, actualStudentDetails.size());
   }
 
   @Test
-  void 受講生詳細の登録_受講生とコースが正しく登録されること() {
-    // 事前準備
-    StudentDetail studentDetail = new StudentDetail();
-    Student student = new Student();
-    studentDetail.setStudent(student);
-    List<StudentCourse> studentCourses = new ArrayList<>();
-    StudentCourse course1 = new StudentCourse();
-    StudentCourse course2 = new StudentCourse();
-    studentCourses.add(course1);
-    studentCourses.add(course2);
-    studentDetail.setStudentCourseList(studentCourses);
+  void 受講生詳細一覧検索_削除フラグがtrueのときに削除された受講生のみが取得される() {
+    Boolean deleted = true;
 
-    // モックの動作設定
-    doNothing().when(repository).registerStudent(student);
-    doNothing().when(repository).registerStudentCourse(any(StudentCourse.class));
+    List<Student> studentList = new ArrayList<>();
+    List<StudentCourse> studentCourseList = new ArrayList<>();
+    List<StudentDetail> studentDetails = createTestStudentDetails();
 
-    // 実行
-    StudentDetail result = sut.registerStudent(studentDetail);
+    when(repository.search()).thenReturn(studentList);
+    when(repository.searchStudentCourseList()).thenReturn(studentCourseList);
+    when(studentConverter.convertStudentDetails(studentList, studentCourseList)).thenReturn(studentDetails);
 
-    // 検証
-    verify(repository, times(1)).registerStudent(student);
-    verify(repository, times(2)).registerStudentCourse(any(StudentCourse.class)); // 2つのコースが登録されることを検証
-    assertEquals(studentDetail, result);
-  }
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
 
-  @Test
-  void 受講生コースの初期化_受講生IDと日付が正しく設定されること() {
-    // 事前準備
-    String id = "1";
-    Student student = new Student();
-    student.setId(id);
-    StudentDetail studentDetail = new StudentDetail();
+    verify(repository, times(1)).search();
+    verify(repository, times(1)).searchStudentCourseList();
+    verify(studentConverter, times(1)).convertStudentDetails(studentList, studentCourseList);
 
-    studentDetail.setStudent(student);
-    StudentCourse studentCourse = new StudentCourse();
-    studentDetail.setStudentCourseList(List.of(studentCourse));
-
-    // モックの動作設定
-    doNothing().when(repository).registerStudent(student);
-    doNothing().when(repository).registerStudentCourse(any(StudentCourse.class));
-
-    // 実行
-    sut.registerStudent(studentDetail);
-
-    // 検証
-    assertEquals(student.getId(), studentCourse.getStudentId());
-    assertNotNull(studentCourse.getStartDate());
-    assertNotNull(studentCourse.getEndDate());
-  }
-
-  @Test
-  void 受講生詳細の更新_受講生とコースが正しく更新されること() {
-    // 事前準備
-    StudentDetail studentDetail = new StudentDetail();
-    Student student = new Student();
-    studentDetail.setStudent(student);
-    List<StudentCourse> studentCourses = new ArrayList<>();
-    StudentCourse course1 = new StudentCourse();
-    StudentCourse course2 = new StudentCourse();
-    studentCourses.add(course1);
-    studentCourses.add(course2);
-    studentDetail.setStudentCourseList(studentCourses);
-
-    // モックの動作設定
-    doNothing().when(repository).updateStudent(student);
-    doNothing().when(repository).updateStudentCourse(any(StudentCourse.class));
-
-    // 実行
-    sut.updateStudent(studentDetail);
-
-    // 検証
-    verify(repository, times(1)).updateStudent(student);
-    verify(repository, times(2)).updateStudentCourse(any(StudentCourse.class)); // 2つのコースが更新されることを検証
+    assertTrue(studentDetails.get(1).getStudent().isDeleted());
+    assertEquals(2, actualStudentDetails.size());
   }
 }

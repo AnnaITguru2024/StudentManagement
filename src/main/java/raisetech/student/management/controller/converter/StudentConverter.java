@@ -30,12 +30,26 @@ public class StudentConverter {
       studentDetail.setStudent(student);
 
       List<StudentCourse> convertStudentCourseList = studentCourseList.stream()
-          .filter(studentCourse -> student.getId().equals(studentCourse.getStudentId()))
+          .filter(studentCourse -> student.getId() == studentCourse.getStudentId())
           .collect(Collectors.toList());
 
       studentDetail.setStudentCourseList(convertStudentCourseList);
       studentDetails.add(studentDetail);
     });
     return studentDetails;
+  }
+
+  /**
+   * 単一の受講生とそのコース情報を受講生詳細に変換する。
+   *
+   * @param student 受講生
+   * @param studentCourses 受講生に紐づくコース情報
+   * @return 受講生詳細情報
+   */
+  public StudentDetail convertToStudentDetail(Student student, List<StudentCourse> studentCourses) {
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(student);
+    studentDetail.setStudentCourseList(studentCourses);
+    return studentDetail;
   }
 }
