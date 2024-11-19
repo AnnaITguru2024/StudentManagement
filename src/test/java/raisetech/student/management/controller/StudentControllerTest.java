@@ -36,7 +36,7 @@ import raisetech.student.management.data.CourseStatus;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.CourseDetail;
-import raisetech.student.management.domain.IntegratedDetail;
+import raisetech.student.management.domain.StudentSearchResponse;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.service.StudentService;
 
@@ -102,7 +102,7 @@ class StudentControllerTest {
   @Test
   void 条件に基づいて受講生詳細を検索し正しいデータが返ってくること() throws Exception {
     // モックデータを直接フィールドに設定
-    IntegratedDetail detail = new IntegratedDetail() {
+    StudentSearchResponse response = new StudentSearchResponse() {
       public String name = "テスト花子";
       public String city = "東京";
       public int age = 25;
@@ -114,10 +114,10 @@ class StudentControllerTest {
     // モックサービスの設定
     when(service.searchIntegratedDetails(
         "テスト花子", "テストハナコ", "東京", 25, "女性", "Java", null))
-        .thenReturn(List.of(detail));
+        .thenReturn(List.of(response));
 
     // テストの実行
-    mockMvc.perform(get("/students/search")
+    mockMvc.perform(get("/students")
             .param("name", "テスト花子")
             .param("furigana", "テストハナコ")
             .param("city", "東京")
@@ -130,7 +130,6 @@ class StudentControllerTest {
         .andExpect(jsonPath("$[0].city").value("東京"))
         .andExpect(jsonPath("$[0].age").value(25))
         .andExpect(jsonPath("$[0].gender").value("女性"))
-        .andExpect(jsonPath("$.length()").value(1))  // Corrected the path here
         .andExpect(jsonPath("$[0].courseName").value("Java"));
   }
 

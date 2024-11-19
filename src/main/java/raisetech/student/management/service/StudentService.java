@@ -14,7 +14,7 @@ import raisetech.student.management.data.CourseStatus;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.CourseDetail;
-import raisetech.student.management.domain.IntegratedDetail;
+import raisetech.student.management.domain.StudentSearchResponse;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.repository.StudentRepository;
 
@@ -92,7 +92,7 @@ public class StudentService {
    * @param status     コース申込状況。条件に一致する申込状況を検索します（"仮申込"、"本申込"、"受講中"、"受講終了"）。
    * @return 条件に一致する受講生およびそのコース詳細を統合した詳細情報のリスト。 統合された詳細は、受講生情報とそのコース情報が含まれます。
    */
-  public List<IntegratedDetail> searchIntegratedDetails(String name, String furigana, String city,
+  public List<StudentSearchResponse> searchIntegratedDetails(String name, String furigana, String city,
       Integer age, String gender, String courseName, CourseStatus.Status status) {
     // 条件に一致する受講生を検索
     List<Student> students = repository.findStudentsByConditions(name, furigana, city, age, gender);
@@ -111,7 +111,7 @@ public class StudentService {
           List<StudentCourse> courses = detail.getStudentCourseList();
           List<CourseDetail> courseDetails = courseConverter.convertToCourseDetails(courses,
               courseStatuses);
-          return new IntegratedDetail(detail, courseDetails);
+          return new StudentSearchResponse(detail, courseDetails);
         })
         .collect(Collectors.toList());
   }
@@ -123,7 +123,7 @@ public class StudentService {
    * @return 登録情報を付与した受講生詳細
    */
   @Transactional
-  public IntegratedDetail registerStudent(StudentDetail studentDetail) {
+  public StudentSearchResponse registerStudent(StudentDetail studentDetail) {
     Student student = studentDetail.getStudent();
     repository.updateStudent(student);
 
@@ -145,7 +145,7 @@ public class StudentService {
       courseDetails.add(courseDetail);
     });
 
-    return new IntegratedDetail(studentDetail, courseDetails);
+    return new StudentSearchResponse(studentDetail, courseDetails);
   }
 
 

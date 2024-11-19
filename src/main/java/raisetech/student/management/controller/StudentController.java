@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.data.CourseStatus;
 import raisetech.student.management.domain.CourseDetail;
-import raisetech.student.management.domain.IntegratedDetail;
+import raisetech.student.management.domain.StudentSearchResponse;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.service.StudentService;
 
@@ -104,7 +104,7 @@ public class StudentController {
       responses = {
           @ApiResponse(responseCode = "200", description = "検索成功",
               content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = IntegratedDetail.class))),
+                  schema = @Schema(implementation = StudentSearchResponse.class))),
           @ApiResponse(responseCode = "204", description = "データなし"),
           @ApiResponse(responseCode = "500", description = "サーバーエラー",
               content = @Content)}
@@ -131,8 +131,8 @@ public class StudentController {
    * @return 統合された受講生の詳細情報
    */
   @Operation(summary = "条件検索による受講生の詳細取得", description = "条件に合致する受講生とそのコース情報を統合して取得します。")
-  @GetMapping("/students/search")
-  public List<IntegratedDetail> searchStudents(
+  @GetMapping("/students")
+  public List<StudentSearchResponse> searchStudents(
       @RequestParam(required = false) String name,
       @RequestParam(required = false) String furigana,
       @RequestParam(required = false) String city,
@@ -162,9 +162,9 @@ public class StudentController {
           @ApiResponse(responseCode = "500", description = "サーバーエラー",
               content = @Content)})
   @PostMapping("/registerStudent")
-  public ResponseEntity<IntegratedDetail> registerStudent(
+  public ResponseEntity<StudentSearchResponse> registerStudent(
       @RequestBody @Valid StudentDetail studentDetail) {
-    IntegratedDetail responseStudentDetail = service.registerStudent(studentDetail);
+    StudentSearchResponse responseStudentDetail = service.registerStudent(studentDetail);
     return ResponseEntity.ok(responseStudentDetail);
   }
 
