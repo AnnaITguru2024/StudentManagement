@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,11 +32,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import raisetech.student.management.data.CourseStatus;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
 import raisetech.student.management.domain.CourseDetail;
+import raisetech.student.management.domain.StudentSearchResponse;
 import raisetech.student.management.domain.StudentDetail;
 import raisetech.student.management.service.StudentService;
 
@@ -99,6 +98,40 @@ class StudentControllerTest {
     verify(service, times(1)).getAllCourses();
   }
 
+
+  @Test
+  void 条件に基づいて受講生詳細を検索し正しいデータが返ってくること() throws Exception {
+    // モックデータを直接フィールドに設定
+    StudentSearchResponse response = new StudentSearchResponse() {
+      public String name = "テスト花子";
+      public String city = "東京";
+      public int age = 25;
+      public String gender = "女性";
+      public String courseName = "Java";
+      public CourseStatus.Status status = CourseStatus.Status.仮申込;
+    };
+
+    // モックサービスの設定
+    when(service.searchIntegratedDetails(
+        "テスト花子", "テストハナコ", "東京", 25, "女性", "Java", null))
+        .thenReturn(List.of(response));
+
+    // テストの実行
+    mockMvc.perform(get("/students")
+            .param("name", "テスト花子")
+            .param("furigana", "テストハナコ")
+            .param("city", "東京")
+            .param("age", "25")
+            .param("gender", "女性")
+            .param("courseName", "Java"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].name").value("テスト花子"))
+        .andExpect(jsonPath("$[0].city").value("東京"))
+        .andExpect(jsonPath("$[0].age").value(25))
+        .andExpect(jsonPath("$[0].gender").value("女性"))
+        .andExpect(jsonPath("$[0].courseName").value("Java"));
+  }
 
   @Test
   void 受講生コース詳細の一覧検索が実行できてコースが返ってくること() throws Exception {

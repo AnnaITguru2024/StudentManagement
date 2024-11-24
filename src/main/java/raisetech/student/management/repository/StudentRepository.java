@@ -2,11 +2,11 @@ package raisetech.student.management.repository;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import raisetech.student.management.data.CourseStatus;
 import raisetech.student.management.data.Student;
 import raisetech.student.management.data.StudentCourse;
-import raisetech.student.management.service.StudentService;
 
 /**
  *受講生テーブルと受講生コース情報テーブルと紐づくRepositoryです。
@@ -52,6 +52,37 @@ public interface StudentRepository {
    * @return 受講生コースIDに紐づく受講生コース申込状況
    */
   CourseStatus searchCourseStatus(int courseId);
+
+  /**
+   * 条件に基づいて受講生を検索します。
+   * @param name 名前
+   * @param furigana フリガナ
+   * @param city 居住地域
+   * @param age 年齢
+   * @param gender 性別
+   * @return 受講生のリスト
+   */
+  List<Student> findStudentsByConditions(
+      @Param("name") String name,
+      @Param("furigana") String furigana,
+      @Param("city") String city,
+      @Param("age") Integer age,
+      @Param("gender") String gender
+  );
+
+  /**
+   * 条件に基づいて受講生コースを検索します。
+   * @param courseName コース名
+   * @return 受講生コースのリスト
+   */
+  List<StudentCourse> findCoursesByConditions(@Param("courseName") String courseName);
+
+  /**
+   * 条件に基づいて申込状況を検索します。
+   * @param status コースステータス
+   * @return コースステータスのリスト
+   */
+  List<CourseStatus> findCourseStatusByConditions(@Param("status") CourseStatus.Status status);
 
   /**
    * 受講生とそのコースの詳細およびステータス情報を検索します。
