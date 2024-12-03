@@ -27,9 +27,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
 
-      - name: Grant execute permission for Gradle Wrapper
-        run: chmod +x ./gradlew
-
       - name: Test with Gradle Wrapper
         run: ./gradlew test
 
@@ -55,22 +52,22 @@ jobs:
             if [ -f /etc/systemd/system/StudentManagement.service ]; then
               echo "already exists Service File"
             else
-              cat <<EOL | sudo tee /etc/systemd/system/StudentManagement.service
-              [Unit]
-              Description = StudentManagement App
+            cat <<EOL | sudo tee /etc/systemd/system/StudentManagement.service
+            [Unit]
+            Description = StudentManagement App
             
-              [Service]
-              ExecStart = java -jar ${DEST_PATH}
-              EnvironmentFile = /etc/sysconfig/StudentManagement
-              Restart = no
-              Type = simple
-              User = ec2-user
-              Group = ec2-user
-              SuccessExitStatus = 143
+            [Service]
+            ExecStart = java -jar ${DEST_PATH}
+            EnvironmentFile = /etc/sysconfig/StudentManagement
+            Restart = no
+            Type = simple
+            User = ec2-user
+            Group = ec2-user
+            SuccessExitStatus = 143
             
-              [Install]
-              WantedBy = multi-user.target
-              EOL
+            [Install]
+            WantedBy = multi-user.target
+            EOL
             fi
             
             sudo systemctl daemon-reload
